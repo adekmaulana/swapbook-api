@@ -49,4 +49,9 @@ class AuthController extends Controller
     {
         return $this->authRepository->resetPasswordProcess($request);
     }
+
+    public function csrfCookie()
+    {
+        return $this->authRepository->csrfCookie();
+    }
 }

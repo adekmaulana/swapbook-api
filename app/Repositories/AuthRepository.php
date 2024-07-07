@@ -5,11 +5,12 @@ namespace App\Repositories;
 use App\Facades\ResponseFormatter;
 use App\Interfaces\AuthRepositoryInterface;
 use App\Models\User;
-use GuzzleHttp\Psr7\Response;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -228,5 +229,11 @@ class AuthRepository implements AuthRepositoryInterface
         return view('auth.reset-password', [
             'token' => $request->token, 'email' => $request->email
         ]);
+    }
+
+    public function csrfCookie()
+    {
+        // redirect from '/api/v1/auth/sanctum/csrf-cookie' to '/sanctum/csrf-cookie'
+        return new RedirectResponse('/sanctum/csrf-cookie');
     }
 }

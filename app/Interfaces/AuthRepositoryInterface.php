@@ -13,4 +13,5 @@ interface AuthRepositoryInterface
     public function forgotPassword(Request $request);
     public function resetPassword(Request $request);
     public function resetPasswordProcess(Request $request);
+    public function csrfCookie();
 }

@@ -16,6 +16,7 @@ Route::prefix('v1')->group(
                 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.email');
                 Route::post('/reset-password', [AuthController::class, 'resetPasswordProcess'])->name('password.update');
                 Route::get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset');
+                Route::get('/csrf-cookie', [AuthController::class, 'csrfCookie']);
             }
         );
 
