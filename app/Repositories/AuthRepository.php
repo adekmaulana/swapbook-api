@@ -33,6 +33,7 @@ class AuthRepository implements AuthRepositoryInterface
         }
 
         User::create([
+            'user_id' => Str::uuid(),
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -72,6 +73,12 @@ class AuthRepository implements AuthRepositoryInterface
             $token->delete();
         }
 
+        if ($user->user_id === null) {
+            $user->update([
+                'user_id' => Str::uuid(),
+            ]);
+        }
+
         return ResponseFormatter::success(
             [
                 'token' => $user->createToken($request->device_name)->plainTextToken,
@@ -108,9 +115,17 @@ class AuthRepository implements AuthRepositoryInterface
                 'password' => Hash::make($request->google_id),
             ]);
         } else {
-            $user->update([
-                'google_id' => $request->google_id,
-            ]);
+            if ($user->google_id === null) {
+                $user->update([
+                    'google_id' => $request->google_id,
+                ]);
+            }
+
+            if ($user->user_id === null) {
+                $user->update([
+                    'user_id' => Str::uuid(),
+                ]);
+            }
         }
 
         // check token exist and delete it
@@ -131,10 +146,7 @@ class AuthRepository implements AuthRepositoryInterface
     public function logout(Request $request)
     {
         try {
-            $request->user()->tokens->each(function ($token, $key) {
-                $token->delete();
-            });
-
+            $request->user()->currentAccessToken()->delete();
             return ResponseFormatter::success(messages: 'User logged out successfully.');
         } catch (\Exception) {
             return ResponseFormatter::error(
@@ -235,5 +247,13 @@ class AuthRepository implements AuthRepositoryInterface
     {
         // redirect from '/api/v1/auth/sanctum/csrf-cookie' to '/sanctum/csrf-cookie'
         return new RedirectResponse('/sanctum/csrf-cookie');
+    }
+
+    public function user(Request $request)
+    {
+        return ResponseFormatter::success(
+            $request->user()->toArray(),
+            'User retrieved successfully.'
+        );
     }
 }

@@ -54,4 +54,9 @@ class AuthController extends Controller
     {
         return $this->authRepository->csrfCookie();
     }
+
+    public function user(Request $request)
+    {
+        return $this->authRepository->user($request);
+    }
 }

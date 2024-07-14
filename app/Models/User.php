@@ -3,7 +3,10 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Notifications\MessageNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,16 +16,11 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * The attributes that are guarded.
      *
      * @var array<int, string>
      */
-    protected $fillable = [
-        'google_id',
-        'name',
-        'email',
-        'password',
-    ];
+    protected $guarded = ['id'];
 
     /**
      * The attributes that should be hidden for serialization.
@@ -56,5 +54,24 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->is_admin;
+    }
+
+    public function chats(): HasMany
+    {
+        return $this->hasMany(Chat::class, 'created_by');
+    }
+
+    public function routeNotificationForOneSignal(): array
+    {
+        return [
+            'tags' => [
+                ['key' => 'user_id', 'relation' => '=', 'value' => $this->id],
+            ],
+        ];
+    }
+
+    public function sendMessageNotification(array $data): void
+    {
+        $this->notify(new MessageNotification($data));
     }
 }

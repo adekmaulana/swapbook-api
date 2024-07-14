@@ -3,6 +3,8 @@
 namespace App\Facades;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * JSON Response Formatter.
@@ -27,7 +29,7 @@ class ResponseFormatter
     /**
      * Give success response.
      */
-    public static function success(array $data = null, array | string $messages = null)
+    public static function success(array|Model|Collection $data = null, array | string $messages = null)
     {
         if (!is_null($messages)) {
             if (!is_array($messages)) {

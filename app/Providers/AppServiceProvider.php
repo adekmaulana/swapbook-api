@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Interfaces\AuthRepositoryInterface;
 use App\Repositories\AuthRepository;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -21,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Broadcast::routes(['prefix' => 'api/v1'], ['middleware' => ['auth:sanctum']]);
+
+        require base_path('routes/channels.php');
     }
 }

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\V1\ChatController;
+use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(
@@ -20,8 +22,22 @@ Route::prefix('v1')->group(
             }
         );
 
-        Route::get('/user', function (Request $request) {
-            return $request->user();
-        })->middleware('auth:sanctum');
+        Route::group(
+            ['middleware' => 'auth:sanctum'],
+            function () {
+                Route::get('/user', [AuthController::class, 'user']);
+                Route::get('/users', [UserController::class, 'users']);
+
+                // Chat
+                Route::post('/chat', [ChatController::class, 'createChat']);
+                Route::get('/chat/{chat}', [ChatController::class, 'getChat']);
+                Route::get('/chats', [ChatController::class, 'getChats']);
+
+                // Message
+                Route::get('/messages', [MessageController::class, 'getMessages']);
+                Route::post('/message', [MessageController::class, 'sendMessage']);
+                Route::get('/message/{message}', [MessageController::class, 'getMessage']);
+            }
+        );
     }
 );
