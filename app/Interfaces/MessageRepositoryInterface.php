@@ -11,4 +11,5 @@ interface MessageRepositoryInterface
     public function getMessages(Request $request);
     public function getMessage(Message $message);
     public function sendNotificationToOther(Message $message);
+    public function readMessages(Request $request);
 }

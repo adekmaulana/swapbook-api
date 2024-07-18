@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\UserController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(
@@ -19,8 +20,11 @@ Route::prefix('v1')->group(
                 Route::post('/reset-password', [AuthController::class, 'resetPasswordProcess'])->name('password.update');
                 Route::get('/reset-password/{token}', [AuthController::class, 'resetPassword'])->name('password.reset');
                 Route::get('/csrf-cookie', [AuthController::class, 'csrfCookie']);
+                Route::get('/ping', [AuthController::class, 'ping'])->middleware('auth:sanctum');
             }
         );
+
+        Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
         Route::group(
             ['middleware' => 'auth:sanctum'],
@@ -37,6 +41,7 @@ Route::prefix('v1')->group(
                 Route::get('/messages', [MessageController::class, 'getMessages']);
                 Route::post('/message', [MessageController::class, 'sendMessage']);
                 Route::get('/message/{message}', [MessageController::class, 'getMessage']);
+                Route::post('/messages/read', [MessageController::class, 'readMessages']);
             }
         );
     }

@@ -33,7 +33,6 @@ class AuthRepository implements AuthRepositoryInterface
         }
 
         User::create([
-            'user_id' => Str::uuid(),
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -71,12 +70,6 @@ class AuthRepository implements AuthRepositoryInterface
         $token = $user->tokens->where('name', $request->device_name)->first();
         if ($token) {
             $token->delete();
-        }
-
-        if ($user->user_id === null) {
-            $user->update([
-                'user_id' => Str::uuid(),
-            ]);
         }
 
         return ResponseFormatter::success(
@@ -118,12 +111,6 @@ class AuthRepository implements AuthRepositoryInterface
             if ($user->google_id === null) {
                 $user->update([
                     'google_id' => $request->google_id,
-                ]);
-            }
-
-            if ($user->user_id === null) {
-                $user->update([
-                    'user_id' => Str::uuid(),
                 ]);
             }
         }
@@ -254,6 +241,13 @@ class AuthRepository implements AuthRepositoryInterface
         return ResponseFormatter::success(
             $request->user()->toArray(),
             'User retrieved successfully.'
+        );
+    }
+
+    public function ping(Request $request)
+    {
+        return ResponseFormatter::success(
+            messages: 'Pong!'
         );
     }
 }

@@ -62,7 +62,7 @@ class ChatRepository implements ChatRepositoryInterface
 
     private function getPreviousChat(int $otherUserId)
     {
-        $userId = auth()->user()->id;
+        $userId = auth('sanctum')->user()->id;
         return Chat::where('is_private', 1)
             ->whereHas('participants', function ($query) use ($userId) {
                 $query->where('user_id', $userId);
@@ -77,11 +77,11 @@ class ChatRepository implements ChatRepositoryInterface
     {
         $otherUserId = $request->user_id;
         unset($request['user_id']);
-        $request['created_by'] = auth()->user()->id;
+        $request['created_by'] = auth('sanctum')->user()->id;
 
         return [
             'other_user_id' => $otherUserId,
-            'user_id' => auth()->user()->id,
+            'user_id' => auth('sanctum')->user()->id,
             'data' => $request->all(),
         ];
     }
@@ -102,12 +102,19 @@ class ChatRepository implements ChatRepositoryInterface
             $isPrivate = (int) $request->is_private;
         }
 
+        $pageSize = $request->page_size ?? 10;
         $chats = Chat::where('is_private', $isPrivate)
-            ->hasParticipant(auth()->user()->id)
+            ->hasParticipant(auth('sanctum')->user()->id)
             ->whereHas('messages')
+            ->getUnreadCount()
             ->with('lastMessage.user', 'participants.user')
             ->latest('updated_at')
-            ->get();
+            ->simplePaginate(
+                $pageSize,
+                ['*'],
+                'page',
+                $request->page ?? 1,
+            );
 
         if ($chats->isEmpty()) {
             return ResponseFormatter::success(
@@ -116,12 +123,18 @@ class ChatRepository implements ChatRepositoryInterface
         }
 
         return ResponseFormatter::success(
-            $chats,
+            $chats->getCollection(),
             'Chats retrieved successfully.'
         );
     }
 
-    public function deleteChat(Request $request)
+    public function deleteChat(Chat $chat)
     {
+        $chat->participants()->delete();
+        $chat->messages()->delete();
+        $chat->delete();
+        return ResponseFormatter::success(
+            messages: 'Chat deleted successfully.'
+        );
     }
 }

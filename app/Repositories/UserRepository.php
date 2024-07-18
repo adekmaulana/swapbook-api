@@ -18,7 +18,7 @@ class UserRepository implements UserRepositoryInterface
             }
         }
 
-        $users = User::where('id', '!=', auth()->user()->id)
+        $users = User::where('id', '!=', auth('sanctum')->user()->id)
             ->when(isset($params['name']), function ($q) use ($params) {
                 return $q->where('name', 'ilike', '%' . $params['name'] . '%');
             })

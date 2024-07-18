@@ -14,6 +14,10 @@ class Message extends Model
 
     protected $touches = ['chat'];
 
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');

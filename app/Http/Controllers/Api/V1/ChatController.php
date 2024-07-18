@@ -30,4 +30,9 @@ class ChatController extends Controller
     {
         return $this->chatRepository->createChat($request);
     }
+
+    public function deleteChat(Chat $chat)
+    {
+        return $this->chatRepository->deleteChat($chat);
+    }
 }

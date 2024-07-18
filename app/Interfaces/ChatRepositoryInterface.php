@@ -13,5 +13,5 @@ interface ChatRepositoryInterface
 
     public function getChats(Request $request);
 
-    public function deleteChat(Request $request);
+    public function deleteChat(Chat $chat);
 }

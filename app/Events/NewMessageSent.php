@@ -41,6 +41,7 @@ class NewMessageSent implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        $this->message->chat->load('lastMessage.user', 'participants.user');
         return [
             'chat_id' => $this->message->chat_id,
             'message' => $this->message->toArray(),

@@ -33,4 +33,14 @@ class Chat extends Model
             $query->where('user_id', $userId);
         });
     }
+
+    public function scopeGetUnreadCount($query)
+    {
+        return $query->withCount([
+            'messages as unread_count' => function ($query) {
+                $query->where('user_id', '!=', auth('sanctum')->user()->id)
+                    ->where('is_read', 0);
+            },
+        ]);
+    }
 }

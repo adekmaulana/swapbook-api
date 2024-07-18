@@ -30,4 +30,9 @@ class MessageController extends Controller
     {
         return $this->messageRepository->sendMessage($request);
     }
+
+    public function readMessages(Request $request)
+    {
+        return $this->messageRepository->readMessages($request);
+    }
 }

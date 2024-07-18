@@ -57,7 +57,7 @@ class MessageRepository implements MessageRepositoryInterface
     public function getMessage(Message $message)
     {
         // check if the owner of this message is the authenticated user
-        if ($message->user_id !== auth()->user()->id) {
+        if ($message->user_id !== auth('sanctum')->user()->id) {
             return ResponseFormatter::error(
                 403,
                 'You are not authorized to view this message.',
@@ -91,7 +91,7 @@ class MessageRepository implements MessageRepositoryInterface
 
         $message = Message::create([
             'chat_id' => (int)$request->chat_id,
-            'user_id' => (int)auth()->user()->id,
+            'user_id' => (int)auth('sanctum')->user()->id,
             'content' => $request->content,
             'type' => $request->type ?? 'text',
         ]);
@@ -112,7 +112,7 @@ class MessageRepository implements MessageRepositoryInterface
     {
         NewMessageSent::broadcast($message)->toOthers();
 
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         $chat = Chat::where('id', $message->chat_id)
             ->with(['participants' => function ($query) use ($user) {
                 $query->where('user_id', '!=', $user->id);
@@ -132,6 +132,29 @@ class MessageRepository implements MessageRepositoryInterface
                 'message' => $message->content,
                 'chat_id' => $message->chat_id,
             ]]
+        );
+    }
+
+    public function readMessages(Request $request)
+    {
+        $chatModel = get_class(new Chat());
+        $validator = Validator::make($request->all(), [
+            'chat_id' => 'required|exists:' . $chatModel . ',id',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(
+                422,
+                $validator->errors(),
+                true
+            );
+        }
+
+        $chat = Chat::find($request->chat_id);
+        $chat->messages()->where('is_read', 0)->update(['is_read' => 1]);
+
+        return ResponseFormatter::success(
+            messages: 'Messages read successfully.'
         );
     }
 }
