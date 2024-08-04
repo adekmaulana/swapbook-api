@@ -29,7 +29,9 @@ Route::prefix('v1')->group(
         Route::group(
             ['middleware' => 'auth:sanctum'],
             function () {
-                Route::get('/user', [AuthController::class, 'user']);
+                Route::get('/user', [UserController::class, 'get']);
+                Route::post('/user', [UserController::class, 'update']);
+                Route::post('/user/location', [UserController::class, 'updateLocation']);
                 Route::get('/users', [UserController::class, 'users']);
 
                 // Chat

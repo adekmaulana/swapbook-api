@@ -7,8 +7,10 @@ namespace App\Models;
 use App\Notifications\MessageNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -65,7 +67,9 @@ class User extends Authenticatable
     {
         return [
             'tags' => [
-                ['key' => 'user_id', 'relation' => '=', 'value' => $this->id],
+                [
+                    'key' => 'user_id', 'relation' => '=', 'value' => (string)($this->id)
+                ],
             ],
         ];
     }

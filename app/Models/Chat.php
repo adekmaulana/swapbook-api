@@ -24,7 +24,7 @@ class Chat extends Model
 
     public function lastMessage()
     {
-        return $this->hasOne(Message::class, 'chat_id')->latest('updated_at');
+        return $this->hasOne(Message::class, 'chat_id')->latest('created_at');
     }
 
     public function scopeHasParticipant($query, $userId)

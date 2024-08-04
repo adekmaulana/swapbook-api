@@ -48,6 +48,24 @@ class MessageRepository implements MessageRepositoryInterface
                 $request->page
             );
 
+        // Group messages by date
+        // $groupedMessages = $messages->getCollection()->groupBy(function ($message) {
+        //     return $message->created_at->format('Y-m-d');
+        // });
+
+        // Format the response
+        // $response = $groupedMessages->map(function ($messages, $date) {
+        //     return [
+        //         'date' => $date,
+        //         'messages' => $messages
+        //     ];
+        // })->values();
+
+        // return ResponseFormatter::success(
+        //     $response,
+        //     'Messages retrieved successfully.'
+        // );
+
         return ResponseFormatter::success(
             $messages->getCollection(),
             'Messages retrieved successfully.'
@@ -110,7 +128,7 @@ class MessageRepository implements MessageRepositoryInterface
 
     public function sendNotificationToOther(Message $message)
     {
-        NewMessageSent::broadcast($message)->toOthers();
+        broadcast(new NewMessageSent($message))->toOthers();
 
         $user = auth('sanctum')->user();
         $chat = Chat::where('id', $message->chat_id)
@@ -129,8 +147,10 @@ class MessageRepository implements MessageRepositoryInterface
             ['message_data' =>
             [
                 'sender_name' => $user->name,
-                'message' => $message->content,
                 'chat_id' => $message->chat_id,
+                'message_id' => $message->id,
+                'content' => $message->content,
+                'type' => $message->type,
             ]]
         );
     }
@@ -151,7 +171,10 @@ class MessageRepository implements MessageRepositoryInterface
         }
 
         $chat = Chat::find($request->chat_id);
-        $chat->messages()->where('is_read', 0)->update(['is_read' => 1]);
+        $chat->messages()
+            ->where('user_id', '!=', auth('sanctum')->user()->id)
+            ->where('is_read', 0)
+            ->update(['is_read' => 1]);
 
         return ResponseFormatter::success(
             messages: 'Messages read successfully.'

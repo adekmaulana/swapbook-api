@@ -55,11 +55,6 @@ class AuthController extends Controller
         return $this->authRepository->csrfCookie();
     }
 
-    public function user(Request $request)
-    {
-        return $this->authRepository->user($request);
-    }
-
     public function ping(Request $request)
     {
         return $this->authRepository->ping($request);

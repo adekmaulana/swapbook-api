@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Kreait\Firebase\Factory;
+use NotificationChannels\OneSignal\OneSignalButton;
 use NotificationChannels\OneSignal\OneSignalChannel;
 use NotificationChannels\OneSignal\OneSignalMessage;
 
@@ -43,9 +44,24 @@ class MessageNotification extends Notification
     public function toOneSignal(): OneSignalMessage
     {
         $data = $this->data['message_data'];
-        return OneSignalMessage::create()
-            ->setSubject($data['sender_name'] . ' sent you a message.')
-            ->setBody($data['message'])
+        $type = $data['type'];
+        $content = $data['content'];
+
+        if ($type === 'request') {
+            $body = 'You have a new swap request.';
+            $buttons = [
+                OneSignalButton::create('decline-button')->text('Decline'),
+                OneSignalButton::create('approve-button')->text('Approve'),
+            ];
+        } else {
+            $body = $content;
+            $buttons = [];
+        }
+        $response = OneSignalMessage::create()
+            ->setSubject($data['sender_name'])
+            ->setBody($body)
+            ->setButtons($buttons)
             ->setData('data', $data);
+        return $response;
     }
 }

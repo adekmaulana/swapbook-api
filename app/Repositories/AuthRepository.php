@@ -236,14 +236,6 @@ class AuthRepository implements AuthRepositoryInterface
         return new RedirectResponse('/sanctum/csrf-cookie');
     }
 
-    public function user(Request $request)
-    {
-        return ResponseFormatter::success(
-            $request->user()->toArray(),
-            'User retrieved successfully.'
-        );
-    }
-
     public function ping(Request $request)
     {
         return ResponseFormatter::success(
