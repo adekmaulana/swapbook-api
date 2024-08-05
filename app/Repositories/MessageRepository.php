@@ -46,13 +46,13 @@ class MessageRepository implements MessageRepositoryInterface
                 ['*'],
                 'page',
                 $request->page
-            )
-            ->groupBy(function ($message) {
-                return $message->created_at->format('Y-m-d');
-            });
+            );
+        // ->groupBy(function ($message) {
+        //     return $message->created_at->format('Y-m-d');
+        // });
 
         return ResponseFormatter::success(
-            $messages,
+            $messages->getCollection(),
             'Messages retrieved successfully.'
         );
     }
