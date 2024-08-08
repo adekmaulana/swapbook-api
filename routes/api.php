@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\BookController;
 use App\Http\Controllers\Api\V1\ChatController;
 use App\Http\Controllers\Api\V1\MessageController;
 use App\Http\Controllers\Api\V1\UserController;
@@ -43,7 +44,14 @@ Route::prefix('v1')->group(
                 Route::get('/messages', [MessageController::class, 'getMessages']);
                 Route::post('/message', [MessageController::class, 'sendMessage']);
                 Route::get('/message/{message}', [MessageController::class, 'getMessage']);
+                Route::post('/message/{message}', [MessageController::class, 'editMessage']);
                 Route::post('/messages/read', [MessageController::class, 'readMessages']);
+
+                // Post or Book
+                Route::post('/post', [BookController::class, 'createBook']);
+                Route::get('/post/{post}', [BookController::class, 'getBook']);
+                Route::get('/posts', [BookController::class, 'getBooks']);
+                Route::post('/post/bookmark', [BookController::class, 'bookmark']);
             }
         );
     }

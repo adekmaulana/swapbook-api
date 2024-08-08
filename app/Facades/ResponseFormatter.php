@@ -29,7 +29,7 @@ class ResponseFormatter
     /**
      * Give success response.
      */
-    public static function success(array|Model|Collection|\Illuminate\Support\Collection $data = null, array | string $messages = null)
+    public static function success($data = null, array | string $messages = null)
     {
         if (!is_null($messages)) {
             if (!is_array($messages)) {

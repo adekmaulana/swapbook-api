@@ -63,6 +63,54 @@ class User extends Authenticatable
         return $this->hasMany(Chat::class, 'created_by');
     }
 
+    public function location(): HasOne
+    {
+        return $this->hasOne(Location::class, 'user_id');
+    }
+
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'user_id')->latest();
+    }
+
+    public function bookmarks()
+    {
+        return $this->hasMany(Bookmark::class, 'user_id');
+    }
+
+    public function bookmark(Post $post)
+    {
+        if ($this->isBookmarked($post)) {
+            // delete bookmark/unbookmark
+            return $this->bookmarks()->where(
+                [
+                    ['post_id' => $post->id],
+                    ['user_id' => $this->id],
+                ]
+            )->delete();
+        }
+
+        $this->bookmarks()->create(
+            [
+                'post_id' => $post->id,
+                'user_id' => $this->id,
+            ]
+        );
+    }
+
+    public function isBookmarked(Post $post): bool
+    {
+        return $this->bookmarks()
+            ->newQuery()
+            ->where(
+                [
+                    ['post_id', $post->id],
+                    ['user_id', $this->id],
+                ]
+            )
+            ->exists();
+    }
+
     public function routeNotificationForOneSignal(): array
     {
         return [

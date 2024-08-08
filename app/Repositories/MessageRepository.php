@@ -7,6 +7,7 @@ use App\Facades\ResponseFormatter;
 use App\Interfaces\MessageRepositoryInterface;
 use App\Models\Chat;
 use App\Models\Message;
+use App\Models\RequestBook;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -17,6 +18,51 @@ class MessageRepository implements MessageRepositoryInterface
 
     public function __construct()
     {
+    }
+
+    public function editMessage(Request $request, Message $message)
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|string',
+            'request_id' => 'required|exists:requests,id',
+            'content' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return ResponseFormatter::error(
+                422,
+                $validator->errors(),
+                true
+            );
+        }
+
+        $status = [
+            'pending' => 0,
+            'approved' => 1,
+            'declined' => 2,
+        ];
+
+        // the owner of the button is not authenticated user
+        if ($message->user_id === auth('sanctum')->user()->id) {
+            return ResponseFormatter::error(
+                403,
+                'You are not authorized to edit this message.',
+                true
+            );
+        }
+
+        $req = RequestBook::where('id', $request->request_id)->first();
+        $req->update(['status' => $status[$request->status]]);
+        $req->save();
+
+        $message->update(['content' => $request->content]);
+        $message->save();
+        $message->load('user', 'chat', 'request', 'request.post');
+        $this->sendNotificationToOther($message, $req);
+        return ResponseFormatter::success(
+            $message,
+            'Message updated successfully.'
+        );
     }
 
     public function getMessages(Request $request)
@@ -40,6 +86,7 @@ class MessageRepository implements MessageRepositoryInterface
         $messages = Message::where('chat_id', $request->chat_id)
             ->with('user')
             ->with('chat')
+            ->with('request', 'request.post')
             ->latest('created_at')
             ->simplePaginate(
                 $pageSize,
@@ -68,7 +115,7 @@ class MessageRepository implements MessageRepositoryInterface
             );
         }
 
-        $message->load('user', 'chat');
+        $message->load('user', 'chat', 'request', 'request.post');
         return ResponseFormatter::success(
             $message,
             'Message retrieved successfully.'
@@ -81,8 +128,18 @@ class MessageRepository implements MessageRepositoryInterface
         $validator = Validator::make($request->all(), [
             'chat_id' => 'required|exists:' . $chatModel . ',id',
             'content' => 'required|string',
-            'type' => 'nullable|string'
+            'type' => 'nullable|string',
+            'book_id' => 'nullable|exists:posts,id',
+            'request_id' => 'nullable|exists:requests,id',
         ]);
+
+        if ($request->type === 'request' && !$request->has('book_id')) {
+            return ResponseFormatter::error(
+                422,
+                'Book id is required for request type message.',
+                true
+            );
+        }
 
         if ($validator->fails()) {
             return ResponseFormatter::error(
@@ -100,11 +157,30 @@ class MessageRepository implements MessageRepositoryInterface
         ]);
         $message->load('user');
 
-        // TODO: load book data if message type is 'request'
+        $req = RequestBook::where('id', $request->request_id)->first();
+        if ($request->type === 'request') {
+            if (!$req) {
+                $req = RequestBook::create([
+                    'request_by' => auth('sanctum')->user()->id,
+                    'post_id' => $request->book_id,
+                    'message_id' => $message->id,
+                ]);
+            } else {
+                if ($req->status === 'approved') {
+                    $req->update(['status' => 1]);
+                } else if ($req->status === 'declined') {
+                    $req->update(['status' => 2]);
+                } else {
+                    $req->update(['status' => 0]);
+                }
 
-        // TODO: send broadcast event to pusher and send notification to onesignal services
-        $this->sendNotificationToOther($message);
+                $req->update(['message_id' => $message->id]);
+                $req->save();
+            }
+            $message->request = $req;
+        }
 
+        $this->sendNotificationToOther($message, $req);
         return ResponseFormatter::success(
             $message,
             'Message sent successfully.'
@@ -129,14 +205,17 @@ class MessageRepository implements MessageRepositoryInterface
         $recipients_id = $chat->participants->first()->user_id;
         $recipients = User::where('id', $recipients_id)->first();
         $recipients->sendMessageNotification(
-            ['message_data' =>
             [
-                'sender_name' => $user->name,
-                'chat_id' => $message->chat_id,
-                'message_id' => $message->id,
-                'content' => $message->content,
-                'type' => $message->type,
-            ]]
+                'message_data' =>
+                [
+                    'sender_name' => $user->name,
+                    'chat_id' => $message->chat_id,
+                    'message_id' => $message->id,
+                    'content' => $message->content,
+                    'type' => $message->type,
+                    'request' => $message->request,
+                ],
+            ]
         );
     }
 

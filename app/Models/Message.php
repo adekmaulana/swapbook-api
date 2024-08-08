@@ -14,9 +14,17 @@ class Message extends Model
 
     protected $touches = ['chat'];
 
-    protected $casts = [
-        'is_read' => 'boolean',
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_read' => 'boolean',
+        ];
+    }
 
     public function user()
     {
@@ -26,5 +34,10 @@ class Message extends Model
     public function chat()
     {
         return $this->belongsTo(Chat::class, 'chat_id');
+    }
+
+    public function request()
+    {
+        return $this->hasOne(RequestBook::class, 'message_id');
     }
 }

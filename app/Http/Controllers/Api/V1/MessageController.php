@@ -16,6 +16,11 @@ class MessageController extends Controller
         $this->messageRepository = $messageRepository;
     }
 
+    public function editMessage(Request $request, Message $message)
+    {
+        return $this->messageRepository->editMessage($request, $message);
+    }
+
     public function getMessages(Request $request)
     {
         return $this->messageRepository->getMessages($request);

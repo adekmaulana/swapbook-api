@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Interfaces\AuthRepositoryInterface;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Repositories\AuthRepository;
 
 class AuthController extends Controller
 {
     protected $authRepository;
 
-    public function __construct(AuthRepositoryInterface $authRepository)
+    public function __construct(AuthRepository $authRepository)
     {
         $this->authRepository = $authRepository;
     }

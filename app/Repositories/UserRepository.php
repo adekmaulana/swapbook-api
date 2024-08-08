@@ -171,7 +171,7 @@ class UserRepository implements UserRepositoryInterface
         );
 
         return ResponseFormatter::success(
-            $location->toArray(),
+            $location,
             'Location updated successfully.'
         );
     }
